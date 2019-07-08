@@ -9,9 +9,10 @@
 import axios from 'axios'
 // const qs = require('qs')
 import qs from 'qs'
-
+import store from '../vuex/store'
+import router from '../router'
 // 请求超时的全局配置
-axios.defaults.timeout = 2000
+axios.defaults.timeout = 20000
 
  //添加请求拦截器
 axios.interceptors.request.use((config) => {
@@ -21,6 +22,11 @@ axios.interceptors.request.use((config) => {
     config.data = qs.stringify(data)
   }
 
+  //如果浏览器有token，就自动携带token
+  const token=localStorage.getItem('token_key')
+  if(token){
+    config.headers.Authorization='token' + token
+  }
   return config
 })
 
@@ -28,7 +34,20 @@ axios.interceptors.request.use((config) => {
 axios.interceptors.response.use((response) => {
   return response.data
 }, (error) => {//统一处理异常
-  alert('请求异常' + error.message)
+  //alert('请求异常' + error.message)
+
+  const status=error.response.status
+  const msg=error.message
+  if(status === 401){ //未授权
+    //退出登录
+    store.dispatch('logout')
+    router.replace('/login')
+    alert(error.response.data.message)
+  }else if(status === 404){
+    alert('请求资源不存在')
+  }else{
+    alert('请求异常:' + msg)
+  }
 
   return new Promise(() => {}) //中断promise链
 })

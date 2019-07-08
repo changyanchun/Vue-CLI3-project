@@ -11,9 +11,10 @@ import {
     RECEIVE_ADDRESS,
     RECEIVE_CATEGORYS,
     RECEIVE_SHOPS,
-    RECEIVE_USER
+    RECEIVE_USER,
+    RESET_USER
  } from './mutations_type'
-
+import Cookies from 'js-cookie'
 export default{
 
     //获取当前地址的异步action
@@ -46,10 +47,20 @@ export default{
           commit(RECEIVE_SHOPS, shops)
         }
       },
+      //记录user，持久化保存token，在state中保存user
       recordUser({commit},user){
           //将user的token保存到localStorage
           localStorage.setItem('token_key',user.token)
           //将user保存到state中
           commit(RECEIVE_USER,user)
+      },
+      //退出登录
+      logout({commit}){
+          //重置状态中的user
+            commit(RESET_USER)
+            //清除token
+            localStorage.removeItem('token_key')
+            //清除cookie中的user_id
+            Cookies.remove('user_id')
       }
 }

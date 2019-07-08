@@ -92,6 +92,7 @@ import { reqSendCode, reqSmsLogin, reqPwdLogin } from '../../api'
         }
         //发送手机号短信验证请求
         const result = await reqSendCode(this.phone)
+        //console.log('result---------------',result)
         if(result.code === 0){
           alert('短信成功发送')
         }else{
@@ -108,9 +109,9 @@ import { reqSendCode, reqSmsLogin, reqPwdLogin } from '../../api'
 
         }else{//用户名登录
 
-          result = await reqSmsLogin({name,pwd,captcha})
+          result = await reqPwdLogin({name,pwd,captcha})
         }
-
+          console.log('result---------'+result)
         if(result.code === 0 ){
           //将user保存到state中
           const user = result.data
