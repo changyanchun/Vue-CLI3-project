@@ -102,7 +102,6 @@ import { reqSendCode, reqSmsLogin, reqPwdLogin } from '../../api'
       async login(){
         const {phone,loginType,name,pwd,code,captcha} = this
         let result
-
         if(loginType){//短信登录
        
           result = await reqSmsLogin( phone, code )
