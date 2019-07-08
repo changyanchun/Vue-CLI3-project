@@ -7,7 +7,8 @@ import {
 } from './mutations_type'
 
 
- 
+
+
 export default{
 
     [RECEIVE_ADDRESS](state, address){

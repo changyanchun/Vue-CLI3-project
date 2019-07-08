@@ -3,6 +3,7 @@
 
 //根据经纬度获取位置的请求
  
+
 import axios from './ajax'
 
 const BASE = '/api'
@@ -39,3 +40,4 @@ export const reqSmsLogin = (phone, code) => axios({
 
 //用户名密码登录请求
 export const reqPwdLogin=({name,pwd,captcha})=>axios.post(BASE + '/login_pwd',{name,pwd,captcha})
+

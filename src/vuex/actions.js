@@ -34,6 +34,7 @@ export default{
         }
     },
  
+
     //获取商家列表
     async getShops({commit, state}) {
         const { longitude, latitude } = state

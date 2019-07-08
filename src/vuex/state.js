@@ -7,3 +7,4 @@ export default{
   shops: [], //商家数组
   user:{}
 }  
+
