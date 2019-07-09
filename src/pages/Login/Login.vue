@@ -12,12 +12,13 @@
         <form>
           <div :class="{on:loginType}">
             <section class="login_message">
-              <input type="tel" maxlength="11" placeholder="手机号" v-model="phone" name="phone" v-validate="'mobile'">
+              <input type="tel" maxlength="11" placeholder="手机号" v-model="phone" name="phone" v-validate="'required|mobile'">
               <span style="color: red;" v-show="errors.has('phone')">{{ errors.first('phone') }}</span>
               <button :disabled="!isRightPhone || computeTime > 0" class="get_verification" :class="{right_phone_number:isRightPhone}" @click.prevent="sendCode">{{computeTime > 0 ? `已发送短信验证${computeTime}S`: '获取验证码'}}</button>
             </section>
             <section class="login_verification">
-              <input type="tel" maxlength="8" placeholder="验证码">
+              <input type="tel" maxlength="8" placeholder="验证码" name="code" v-validate="'required'">
+              <span style="color: red;" v-show="errors.has('code')">{{ errors.first('code') }}</span>
             </section>
             <section class="login_hint">
               温馨提示：未注册硅谷外卖帐号的手机号，登录时将自动注册，且代表已同意
@@ -27,18 +28,20 @@
           <div :class="{on:!loginType}">
             <section>
               <section class="login_message">
-                <input type="tel" maxlength="11" placeholder="手机/邮箱/用户名" name="用户名" v-validate="'required|email'">
-                <span style="color: red;" v-show="errors.has('用户名')">{{ errors.first('用户名') }}</span>
+                <input type="tel" maxlength="11" placeholder="手机/邮箱/用户名" name="name" v-validate="'required'" v-model="name">
+                <span style="color: red;" v-show="errors.has('name')">{{ errors.first('name') }}</span>
               </section>
               <section class="login_verification">
-                <input :type="isShowPwd?'text': 'password'" maxlength="8" placeholder="密码" v-model="pwd">
+                <input :type="isShowPwd?'text': 'password'" maxlength="8" placeholder="密码" v-model="pwd" name="pwd" v-validate="'required'">
+                <span style="color: red;" v-show="errors.has('pwd')">{{ errors.first('pwd') }}</span>
                 <div class="switch_button" :class="isShowPwd ? 'on': 'off'" @click="isShowPwd = !isShowPwd">
                   <div class="switch_circle" :class="{right:isShowPwd}"></div>
                   <span class="switch_text">{{isShowPwd? 'abc':''}}</span>
                 </div>
               </section>
               <section class="login_message">
-                <input type="text" maxlength="11" placeholder="验证码" v-model="captcha">
+                <input type="text" maxlength="11" placeholder="验证码" v-model="captcha" name="captcha" v-validate="'required'">
+                <span style="color: red;" v-show="errors.has('captcha')">{{ errors.first('captcha') }}</span>
                 <img class="get_verification" src="http://localhost:5000/captcha" alt="captcha"
                 @click="updateCaptcha" ref='captcha'>
               </section>
@@ -85,11 +88,12 @@ import { reqSendCode, reqSmsLogin, reqPwdLogin } from '../../api'
         //启动循环定时器
         const timer = setInterval(()=>{
           this.computeTime--
+            if(this.computeTime === 0){
+            //清除定时器
+            clearInterval(timer)
+          }
         },1000)
-        if(this.computeTime === 0){
-          //清除定时器
-          clearInterval(timer)
-        }
+        
         //发送手机号短信验证请求
         const result = await reqSendCode(this.phone)
         //console.log('result---------------',result)
@@ -101,26 +105,41 @@ import { reqSendCode, reqSmsLogin, reqPwdLogin } from '../../api'
       },
       //点击登录
       async login(){
+
         const {phone,loginType,name,pwd,code,captcha} = this
-        let result
-        if(loginType){//短信登录
-       
-          result = await reqSmsLogin( phone, code )
+        let names
 
-        }else{//用户名登录
+        if (loginType) { 
+          names = ['phone', 'code']
+        } else {
+          names = ['name', 'pwd', 'captcha']
+        }
+        
+        // 进行统一的前台表单验证
+        const success = await this.$validator.validateAll(names)
+        // 验证通过后发ajax请求
+        if (success) {
+            let result
+          if(loginType){//短信登录        
+            result = await reqSmsLogin(phone, code)
+            //console.log(result)
+          }else{//用户名登录
+            result = await reqPwdLogin({name,pwd,captcha})
+            //console.log(result)
+          }
 
-          result = await reqPwdLogin({name,pwd,captcha})
-        }
-          console.log('result---------'+result)
-        if(result.code === 0 ){
-          //将user保存到state中
-          const user = result.data
-          this.$store.dispatch('recordUser',user) 
-          //跳转到个人中心
-          this.$router.replace('/profile')
-        }else{
-          alert(result.msg)
-        }
+            //console.log('result---------'+result)
+          if(result.code === 0 ){
+            //将user保存到state中
+            const user = result.data
+            //console.log(user)
+            this.$store.dispatch('recordUser',user) 
+            //跳转到个人中心
+            this.$router.replace('/profile')
+          }else{
+            alert(result.msg)
+          }
+        }        
       },
       //更新图形验证码显示
       updateCaptcha(){

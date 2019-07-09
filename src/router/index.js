@@ -6,6 +6,7 @@ import routes from './routes'
 Vue.use(VueRouter)
 
 export default new VueRouter({
+     mode:'history',
     //注册路由
         routes
 })

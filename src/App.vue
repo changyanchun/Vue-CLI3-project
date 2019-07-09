@@ -16,6 +16,8 @@ import FooterGuide from '../src/components/FooterGuide/FootGuide.vue'
     },
    async mounted(){
      this.$store.dispatch('getAddress')
+     //如果lacastorage有token自动等路
+    // this.$store.dispatch('autoLogin')
    }
   }
 </script>
